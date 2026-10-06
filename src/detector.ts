@@ -1,4 +1,5 @@
-import { FilesetResolver, FaceLandmarker, HandLandmarker, ObjectDetector, type NormalizedLandmark } from "@mediapipe/tasks-vision";
+import { PointSmoother } from "./smooth";
+import { FilesetResolver, FaceLandmarker, HandLandmarker, ObjectDetector } from "@mediapipe/tasks-vision";
 
 const WASM = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm";
 const FACE_MODEL =
@@ -25,7 +26,15 @@ export interface Frame {
   lips?: { upper: Pt[]; lower: Pt[] };
   hand?: Pt;
   brushHead?: Pt;
+  handPoints?: Pt[][];                                           // smoothed 21-point skeletons, for drawing
+  brushBox?: { x0: number; y0: number; x1: number; y1: number }; // last toothbrush sighting
 }
+
+// MediaPipe hand skeleton connections
+export const HAND_EDGES: [number, number][] = [
+  [0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [5, 6], [6, 7], [7, 8], [5, 9], [9, 10], [10, 11], [11, 12],
+  [9, 13], [13, 14], [14, 15], [15, 16], [13, 17], [17, 18], [18, 19], [19, 20], [0, 17],
+];
 
 // Face mesh landmark indices
 const LIP_TOP = 13, LIP_BOTTOM = 14, MOUTH_R = 61, MOUTH_L = 291; // 61 = user's right corner
@@ -42,6 +51,10 @@ export class BrushDetector {
   private trail: { x: number; y: number; t: number }[] = [];
   private zoneVotes: Zone[] = [];
   private frameNo = 0;
+  private lipSmooth = new PointSmoother(1.0, 0.01);
+  private handSmooth = [new PointSmoother(1.5, 0.03), new PointSmoother(1.5, 0.03)];
+  private lostFace = 0;
+  private lastFace: { lm: Pt[] } | null = null;
   private lastBrush: { box: { x0: number; y0: number; x1: number; y1: number }; t: number } | null = null;
 
   async init() {
@@ -70,8 +83,21 @@ export class BrushDetector {
 
   detect(video: HTMLVideoElement, now: number): Frame {
     const out: Frame = { face: false, handNearMouth: false, grip: false, brushSeen: false, brushing: false, zone: null };
-    const lm = this.face.detectForVideo(video, now).faceLandmarks?.[0];
-    if (!lm) { this.trail = []; return out; }
+    const raw = this.face.detectForVideo(video, now).faceLandmarks?.[0];
+    let lm: Pt[];
+    if (raw) {
+      this.lostFace = 0;
+      // smooth only the points we use (lip ring + corners/centre)
+      const ids = [...new Set([...UPPER_LIP, ...LOWER_LIP, LIP_TOP, LIP_BOTTOM])];
+      const sm = this.lipSmooth.apply(ids.map(i => raw[i]), now);
+      lm = [];
+      ids.forEach((id, k) => { lm[id] = sm[k]; });
+      this.lastFace = { lm };
+    } else if (this.lastFace && ++this.lostFace <= 5) {
+      lm = this.lastFace.lm; // keep the overlay steady through a few dropped frames
+    } else {
+      this.lipSmooth.reset(); this.lastFace = null; this.trail = []; return out;
+    }
     out.face = true;
 
     const ml = lm[MOUTH_R], mr = lm[MOUTH_L];
@@ -92,10 +118,14 @@ export class BrushDetector {
     }
     const brush = this.lastBrush && now - this.lastBrush.t < BRUSH_MEMORY_MS ? this.lastBrush.box : null;
     out.brushSeen = !!brush;
+    if (brush) out.brushBox = brush;
 
     // --- the hand holding it ---
     let best: { x: number; y: number; d: number; grip: boolean } | null = null;
-    for (const hand of this.hands.detectForVideo(video, now).landmarks ?? []) {
+    const hands = (this.hands.detectForVideo(video, now).landmarks ?? []).slice(0, 2);
+    if (hands.length === 0) this.handSmooth.forEach(h => h.reset());
+    out.handPoints = hands.map((h, i) => this.handSmooth[i].apply(h, now));
+    for (const hand of out.handPoints) {
       const x = (hand[5].x + hand[9].x + hand[0].x) / 3; // knuckles + wrist: stable "fist" point
       const y = (hand[5].y + hand[9].y + hand[0].y) / 3;
       const d = Math.hypot(x - mx, y - my);
@@ -148,15 +178,15 @@ export class BrushDetector {
 }
 
 // At least three of the four fingers curled: fingertip is closer to the wrist than its middle joint.
-function isGrip(h: NormalizedLandmark[]): boolean {
+function isGrip(h: Pt[]): boolean {
   const wrist = h[0];
-  const d = (a: NormalizedLandmark) => Math.hypot(a.x - wrist.x, a.y - wrist.y);
+  const d = (a: Pt) => Math.hypot(a.x - wrist.x, a.y - wrist.y);
   let curled = 0;
   for (const [tip, pip] of [[8, 6], [12, 10], [16, 14], [20, 18]]) if (d(h[tip]) < d(h[pip]) * 1.05) curled++;
   return curled >= 3;
 }
 
-const pt = (l: NormalizedLandmark): Pt => ({ x: l.x, y: l.y });
+const pt = (l: Pt): Pt => ({ x: l.x, y: l.y });
 
 function distToBox(x: number, y: number, b: { x0: number; y0: number; x1: number; y1: number }) {
   const dx = Math.max(b.x0 - x, 0, x - b.x1), dy = Math.max(b.y0 - y, 0, y - b.y1);

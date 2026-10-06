@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { X } from "@phosphor-icons/react";
-import { BrushDetector, ZONES, type Zone, type Frame, type Pt } from "../detector";
+import { BrushDetector, ZONES, HAND_EDGES, type Zone, type Frame, type Pt } from "../detector";
 import { TOTAL_MS, ZONE_LABEL, ZONE_TARGET_MS } from "../game";
 import { germ, kenney, lottie, sfx } from "../assets";
 import type { ThemeId } from "../progress";
@@ -181,7 +181,7 @@ function drawOverlay(c: HTMLCanvasElement, v: HTMLVideoElement, f: Frame | null,
   if (c.width !== v.videoWidth) { c.width = v.videoWidth; c.height = v.videoHeight; }
   const ctx = c.getContext("2d")!;
   ctx.clearRect(0, 0, c.width, c.height);
-  if (!f?.mouth || !f.lips) return;
+  if (!f?.mouth || !f.lips) { if (f) drawTracking(ctx, c, f, color); return; }
   const thick = f.mouth.w * c.width * 0.14;
   const target = ZONES.find(z => zoneMs[z] < ZONE_TARGET_MS) ?? null;
   ctx.lineCap = "round";
@@ -228,6 +228,8 @@ function drawOverlay(c: HTMLCanvasElement, v: HTMLVideoElement, f: Frame | null,
     ctx.fill();
   }
 
+  drawTracking(ctx, c, f, color);
+
   // sparkles at the brush head
   if (f.brushing && f.brushHead) {
     for (let i = 0; i < 8; i++) {
@@ -237,4 +239,50 @@ function drawOverlay(c: HTMLCanvasElement, v: HTMLVideoElement, f: Frame | null,
       ctx.fill();
     }
   }
+}
+
+// Live tracking layer, like a motion-capture view: hand skeletons, lip contour and the toothbrush box.
+function drawTracking(ctx: CanvasRenderingContext2D, c: HTMLCanvasElement, f: Frame, color: string) {
+  const X = (p: Pt) => p.x * c.width, Y = (p: Pt) => p.y * c.height;
+  ctx.save();
+  ctx.setLineDash([]);
+  ctx.shadowBlur = 0;
+
+  for (const h of f.handPoints ?? []) {
+    ctx.strokeStyle = f.grip ? "rgba(90,209,122,.9)" : "rgba(255,255,255,.85)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    for (const [a, b] of HAND_EDGES) { ctx.moveTo(X(h[a]), Y(h[a])); ctx.lineTo(X(h[b]), Y(h[b])); }
+    ctx.stroke();
+    for (let i = 0; i < h.length; i++) {
+      ctx.fillStyle = [4, 8, 12, 16, 20].includes(i) ? color : "#fff";
+      ctx.beginPath(); ctx.arc(X(h[i]), Y(h[i]), [4, 8, 12, 16, 20].includes(i) ? 5 : 3.5, 0, 7); ctx.fill();
+    }
+  }
+
+  if (f.lips) {
+    ctx.strokeStyle = "rgba(255,255,255,.7)";
+    ctx.lineWidth = 1.5;
+    for (const line of [f.lips.upper, f.lips.lower]) {
+      ctx.beginPath();
+      line.forEach((p, i) => (i ? ctx.lineTo(X(p), Y(p)) : ctx.moveTo(X(p), Y(p))));
+      ctx.stroke();
+      ctx.fillStyle = "rgba(255,255,255,.9)";
+      for (const p of line) { ctx.beginPath(); ctx.arc(X(p), Y(p), 2, 0, 7); ctx.fill(); }
+    }
+  }
+
+  if (f.brushBox) {
+    const b = f.brushBox;
+    const x = b.x0 * c.width, y = b.y0 * c.height, w = (b.x1 - b.x0) * c.width, h = (b.y1 - b.y0) * c.height;
+    const k = Math.min(18, w / 3, h / 3);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.beginPath(); // corner brackets
+    for (const [cx, cy, dx, dy] of [[x, y, 1, 1], [x + w, y, -1, 1], [x, y + h, 1, -1], [x + w, y + h, -1, -1]]) {
+      ctx.moveTo(cx + dx * k, cy); ctx.lineTo(cx, cy); ctx.lineTo(cx, cy + dy * k);
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
 }
