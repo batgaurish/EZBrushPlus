@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EZBrushPlus Mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Fredoka:wght@400;500;600;700&family=Lilita+One&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+<style>
+@font-face { font-family: "Kenney Future"; src: url(assets/fonts/Kenney%20Future.ttf); }
+* { box-sizing: border-box; }
+body { margin: 0; background: #ececf1; font-family: Nunito, sans-serif; color: #222; }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 32px 16px 80px; }
+.page-h { font: 800 28px Nunito; margin: 0 0 4px; }
+.page-sub { margin: 0 0 32px; color: #666; }
+.option { margin-bottom: 56px; }
+.option > header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.option > header h2 { margin: 0; font: 900 22px Nunito; }
+.option > header .tag { background: #222; color: #fff; border-radius: 99px; padding: 2px 10px; font-size: 13px; font-weight: 800; }
+.option > header p { margin: 0; color: #555; flex-basis: 100%; }
+.phones { display: flex; gap: 24px; flex-wrap: wrap; }
+.phone { width: 300px; height: 620px; border-radius: 40px; border: 10px solid #111; overflow: hidden; position: relative; flex: none; box-shadow: 0 20px 40px #0002; }
+.phone .scr { position: absolute; inset: 0; overflow: hidden; }
+.lot { pointer-events: none; }
+img { display: block; }
+
+/* =============== A. GERM ARCADE (Kenney) =============== */
+.a .scr { background: #3a9be0 radial-gradient(circle at 50% -10%, #6cc4ff 0, #3a9be0 55%); color: #fff; font-family: Nunito; }
+.a .scr::before { content: ""; position: absolute; inset: 0; background-image: radial-gradient(#ffffff22 2px, transparent 2px); background-size: 22px 22px; }
+.a .k-title { font-family: "Kenney Future"; font-size: 26px; text-align: center; margin: 26px 0 0; position: relative; text-shadow: 0 3px 0 #1d6fae; }
+.a .k-pill { position: relative; display: flex; justify-content: center; gap: 8px; margin: 10px 0; }
+.a .k-pill span { font-family: "Kenney Future"; font-size: 13px; background: #1d6fae; border-radius: 10px; padding: 6px 10px; display: flex; gap: 6px; align-items: center; }
+.a .k-pill img { width: 18px; }
+.a .boss { position: relative; margin: 8px 18px; background: #fff; color: #2b3a4a; border-radius: 14px; border-bottom: 5px solid #c8d4e0; padding: 12px; text-align: center; }
+.a .boss small { font-family: "Kenney Future"; color: #e2463f; font-size: 11px; letter-spacing: 1px; }
+.a .boss img { width: 120px; margin: 6px auto; }
+.a .hp { height: 14px; background: #e6ecf2; border-radius: 8px; overflow: hidden; border: 2px solid #c8d4e0; }
+.a .hp i { display: block; height: 100%; width: 100%; background: linear-gradient(#ff6b5f, #e2463f); }
+.a .kbtn { position: relative; display: block; margin: 14px auto 0; width: 230px; height: 64px; border: 0; background: url(assets/kenney/button_rectangle_depth_gloss_yellow.svg) center/100% 100% no-repeat; font: 20px "Kenney Future"; color: #6b4a00; padding-bottom: 6px; }
+.a .row { position: relative; display: flex; justify-content: center; gap: 10px; margin-top: 12px; }
+.a .row div { width: 56px; height: 56px; background: url(assets/kenney/button_round_depth_gloss_blue.svg) center/100% no-repeat; display: grid; place-items: center; }
+.a .row img { width: 30px; }
+.a .row div.lock { filter: grayscale(1) opacity(.6); }
+.a .cam { position: absolute; inset: 0; background: #0e2033; }
+.a .cam img { width: 100%; height: 100%; object-fit: cover; opacity: .9; }
+.a .hud { position: absolute; top: 14px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; }
+.a .hud .t { font: 30px "Kenney Future"; background: #1d6fae; border-radius: 14px; padding: 4px 14px; border-bottom: 4px solid #0f4a78; }
+.a .hud .stars { display: flex; } .a .hud .stars img { width: 26px; }
+.a .zones { position: absolute; bottom: 14px; left: 10px; right: 10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.a .z { background: #ffffffee; border-radius: 12px; border-bottom: 4px solid #c8d4e0; padding: 6px 6px 8px; text-align: center; color: #2b3a4a; font: 9px "Kenney Future"; }
+.a .z img { height: 34px; margin: 0 auto 4px; }
+.a .z .hp { height: 8px; border-width: 1px; }
+.a .z.done { background: #5ad17a; border-color: #2f9a50; color: #fff; }
+.a .z.on { outline: 3px solid #ffcf3d; }
+.a .callout { position: absolute; bottom: 170px; left: 50%; transform: translateX(-50%); background: #ffcf3d; color: #6b4a00; font: 13px "Kenney Future"; padding: 8px 14px; border-radius: 12px; border-bottom: 4px solid #c99a10; white-space: nowrap; }
+.a .pop { position: absolute; width: 150px; height: 150px; left: 60px; top: 180px; }
+
+/* =============== B. STICKER BOOK (Storyset + OGA) =============== */
+.b .scr { background: #fff8ec; font-family: Fredoka; color: #3b2a1e; }
+.b .scr::after { content: ""; position: absolute; inset: 0; pointer-events: none; background-image: repeating-linear-gradient(0deg, transparent 0 27px, #f1e3cc 27px 28px); opacity: .7; }
+.b .scr > * { position: relative; z-index: 1; }
+.b .hdr { display: flex; justify-content: space-between; align-items: center; padding: 18px 18px 0; }
+.b .hdr b { font-size: 22px; font-weight: 700; } .b .hdr b span { color: #ff6f59; }
+.b .chip { background: #ffd66b; border: 2.5px solid #3b2a1e; border-radius: 99px; padding: 2px 10px; font-weight: 600; font-size: 14px; box-shadow: 2px 2px 0 #3b2a1e; }
+.b .hero { margin: 12px 16px 0; background: #fff; border: 2.5px solid #3b2a1e; border-radius: 22px; box-shadow: 4px 4px 0 #3b2a1e; padding: 10px; transform: rotate(-1deg); }
+.b .hero img { width: 100%; height: 150px; object-fit: contain; }
+.b .hero h3 { margin: 4px 0 0; font-size: 19px; text-align: center; }
+.b .hero p { margin: 0; text-align: center; font-size: 13px; color: #8a6d55; }
+.b .btn { display: block; margin: 16px auto 0; width: 240px; padding: 13px; background: #ff6f59; color: #fff; border: 2.5px solid #3b2a1e; border-radius: 18px; box-shadow: 0 5px 0 #3b2a1e; font: 700 19px Fredoka; }
+.b h4 { margin: 18px 18px 6px; font-size: 15px; }
+.b .stickers { display: flex; gap: 10px; padding: 0 18px; }
+.b .stk { width: 58px; height: 58px; border-radius: 50%; background: #fff; border: 2.5px dashed #c9b49a; display: grid; place-items: center; }
+.b .stk img { width: 44px; filter: drop-shadow(0 0 0 #fff) drop-shadow(2px 2px 0 #3b2a1e33); }
+.b .stk.got { border: 2.5px solid #3b2a1e; transform: rotate(-8deg); }
+.b .stk.got:nth-child(2) { transform: rotate(6deg); }
+.b .stk:not(.got) img { filter: grayscale(1) opacity(.25); }
+.b .cam { position: absolute; inset: 0; background: #fff8ec; }
+.b .frame { position: absolute; top: 60px; left: 14px; right: 14px; height: 340px; border: 2.5px solid #3b2a1e; border-radius: 22px; overflow: hidden; background: #e9f6ff; box-shadow: 4px 4px 0 #3b2a1e; }
+.b .frame img { width: 100%; height: 100%; object-fit: cover; }
+.b .timer { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); font: 700 26px Fredoka; background: #ffd66b; border: 2.5px solid #3b2a1e; border-radius: 16px; padding: 0 14px; box-shadow: 2px 3px 0 #3b2a1e; z-index: 3; }
+.b .mouth { position: absolute; left: 14px; right: 14px; bottom: 16px; background: #fff; border: 2.5px solid #3b2a1e; border-radius: 22px; padding: 10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; box-shadow: 4px 4px 0 #3b2a1e; }
+.b .mouth div { aspect-ratio: 1.2; border-radius: 14px; background: #ffeede; display: grid; place-items: center; position: relative; font-size: 11px; }
+.b .mouth div img { width: 46px; }
+.b .mouth div.done { background: #d4f5dd; }
+.b .mouth div.on { background: #ffd66b; }
+.b .mouth div span { position: absolute; bottom: 2px; font-weight: 600; color: #8a6d55; }
+.b .bubble { position: absolute; top: 340px; right: 24px; background: #fff; border: 2.5px solid #3b2a1e; border-radius: 16px 16px 4px 16px; padding: 6px 10px; font-weight: 600; font-size: 14px; z-index: 3; }
+
+/* =============== C. SUPER SMILE HERO (night) =============== */
+.c .scr { background: radial-gradient(ellipse at 50% 0%, #4b2a9a 0%, #23125a 55%, #160b3a 100%); color: #fff; font-family: Nunito; }
+.c .sky { position: absolute; inset: 0; background-image: radial-gradient(1.5px 1.5px at 20% 30%, #fff, transparent), radial-gradient(1px 1px at 70% 12%, #fff, transparent), radial-gradient(1.5px 1.5px at 85% 40%, #fff, transparent), radial-gradient(1px 1px at 40% 60%, #fffa, transparent), radial-gradient(1px 1px at 10% 80%, #fffa, transparent), radial-gradient(1.5px 1.5px at 60% 85%, #fff, transparent); }
+.c .ttl { position: relative; text-align: center; font: 30px "Lilita One"; margin: 22px 0 0; letter-spacing: .5px; }
+.c .ttl span { color: #ffd23f; }
+.c .mascot { position: relative; width: 210px; height: 210px; margin: 0 auto; }
+.c .lvl { position: relative; margin: -6px 22px 0; background: #ffffff14; border: 1px solid #ffffff2a; border-radius: 18px; padding: 12px 14px; }
+.c .lvl b { font: 18px "Lilita One"; } .c .lvl small { color: #c5b6ff; float: right; font-weight: 800; }
+.c .xp { height: 12px; background: #0006; border-radius: 99px; margin-top: 8px; overflow: hidden; }
+.c .xp i { display: block; width: 62%; height: 100%; background: linear-gradient(90deg, #ffd23f, #ff8a3d); border-radius: 99px; }
+.c .trio { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 22px 0; }
+.c .trio div { background: #ffffff14; border-radius: 14px; text-align: center; padding: 8px 0; }
+.c .trio b { display: block; font: 22px "Lilita One"; color: #ffd23f; }
+.c .trio small { font-size: 11px; color: #c5b6ff; font-weight: 800; }
+.c .go { position: relative; display: block; margin: 16px auto 0; width: 250px; padding: 14px; border: 0; border-radius: 99px; background: linear-gradient(#ffe066, #ffbf1f); color: #3a1d00; font: 22px "Lilita One"; box-shadow: 0 6px 0 #c47f00, 0 0 30px #ffd23f66; }
+.c .cam { position: absolute; inset: 0; }
+.c .cam > img { width: 100%; height: 100%; object-fit: cover; filter: saturate(.9) brightness(.85); }
+.c .ring { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); width: 92px; height: 92px; border-radius: 50%; background: conic-gradient(#ffd23f 0 61%, #ffffff33 0); display: grid; place-items: center; }
+.c .ring span { width: 78px; height: 78px; border-radius: 50%; background: #23125a; display: grid; place-items: center; font: 24px "Lilita One"; }
+.c .germbar { position: absolute; bottom: 14px; left: 12px; right: 12px; background: #23125add; border-radius: 22px; padding: 10px; backdrop-filter: blur(6px); }
+.c .germbar h5 { margin: 0 0 6px; font: 14px "Lilita One"; color: #ffd23f; text-align: center; letter-spacing: .5px; }
+.c .gl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.c .gl div { aspect-ratio: 1.6; border-radius: 12px; background: #ffffff18; display: grid; place-items: center; }
+.c .gl img { width: 34px; }
+.c .gl .done { background: #2fd39a55; } .c .gl .done img { filter: grayscale(1) brightness(2) opacity(.25); }
+.c .gl .on { outline: 2px solid #ffd23f; }
+.c .mini { position: absolute; width: 120px; height: 120px; right: 0; bottom: 110px; }
+.c .shout { position: absolute; right: 96px; bottom: 190px; background: #fff; color: #23125a; font: 15px "Lilita One"; border-radius: 14px 14px 2px 14px; padding: 6px 10px; }
+
+/* =============== D. CANDY CLINIC (pastel) =============== */
+.d .scr { background: linear-gradient(180deg, #ffe3ef 0%, #e2f7ff 60%, #dff8ec 100%); font-family: "Baloo 2"; color: #3d3557; }
+.d .blob { position: absolute; border-radius: 50%; filter: blur(2px); }
+.d .hi { position: relative; padding: 20px 20px 0; display: flex; justify-content: space-between; align-items: center; }
+.d .hi b { font-size: 22px; font-weight: 800; line-height: 1.1; } .d .hi small { display: block; font-weight: 500; color: #8a80a8; font-size: 14px; }
+.d .av { width: 46px; height: 46px; border-radius: 50%; background: #fff; display: grid; place-items: center; box-shadow: 0 4px 12px #c7a8d044; }
+.d .av img { width: 38px; }
+.d .mascot { position: relative; width: 200px; height: 200px; margin: 0 auto -10px; }
+.d .card { position: relative; margin: 0 18px; background: #ffffffcc; border-radius: 26px; padding: 14px; box-shadow: 0 10px 30px #b9a3d433; }
+.d .days { display: flex; justify-content: space-between; }
+.d .days div { width: 32px; text-align: center; font-size: 12px; color: #8a80a8; font-weight: 700; }
+.d .days i { display: block; width: 30px; height: 30px; border-radius: 50%; background: #f1ecf8; margin-top: 2px; }
+.d .days i.one { background: #ffc2dc; } .d .days i.two { background: #7ee0b5; }
+.d .days i.today { outline: 3px dashed #ff8fc0; outline-offset: 2px; }
+.d .note { font-size: 13px; color: #8a80a8; margin-top: 8px; text-align: center; }
+.d .kgo { position: relative; display: flex; align-items: center; justify-content: center; gap: 10px; margin: 16px auto 0; width: 250px; padding: 12px; border: 0; border-radius: 22px; background: #ff8fc0; color: #fff; font: 800 21px "Baloo 2"; box-shadow: 0 6px 0 #e46aa1; }
+.d .kgo img { width: 28px; }
+.d .cam { position: absolute; inset: 0; }
+.d .cam > img.bg { width: 100%; height: 100%; object-fit: cover; }
+.d .topbar { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; gap: 8px; align-items: center; }
+.d .time { background: #fff; border-radius: 18px; padding: 2px 14px; font: 800 26px "Baloo 2"; color: #ff6fae; box-shadow: 0 4px 0 #f3c3da; }
+.d .prog { flex: 1; height: 16px; background: #ffffffaa; border-radius: 99px; overflow: hidden; }
+.d .prog i { display: block; height: 100%; width: 45%; background: repeating-linear-gradient(45deg, #7ee0b5 0 10px, #9eeac8 10px 20px); }
+.d .tooth6 { position: absolute; bottom: 14px; left: 14px; right: 14px; background: #fff; border-radius: 26px; padding: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; box-shadow: 0 10px 30px #0002; }
+.d .tooth6 div { border-radius: 18px; background: #fff2f8; padding: 6px 0 4px; text-align: center; font-size: 11px; color: #8a80a8; font-weight: 700; }
+.d .tooth6 img { width: 38px; margin: 0 auto; }
+.d .tooth6 .done { background: #e2f8ee; } .d .tooth6 .on { background: #fff0b8; }
+.d .pal { position: absolute; width: 130px; height: 130px; right: 6px; bottom: 150px; }
+.d .say { position: absolute; right: 120px; bottom: 210px; background: #fff; border-radius: 16px 16px 2px 16px; padding: 6px 12px; font-weight: 800; color: #ff6fae; box-shadow: 0 4px 0 #f3c3da; }
+
+.credits { font-size: 13px; color: #666; border-top: 1px solid #ccc; padding-top: 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="page-h">EZBrushPlus: UI options</h1>
+  <p class="page-sub">Four directions, each showing the Home and Brushing screens. Pick one (or mix parts) and I'll build the app in it.</p>
+
+  <!-- ===================== A ===================== -->
+  <section class="option a">
+    <header><span class="tag">A</span><h2>Germ Arcade</h2><p>Mobile-game feel. Kenney glossy buttons, the Kenney Future font and stars. Each brushing session is a "boss fight" against germ monsters with health bars.</p></header>
+    <div class="phones">
+      <div class="phone"><div class="scr">
+        <div class="k-title">EZBRUSH+</div>
+        <div class="k-pill"><span><img src="assets/kenney/star_yellow.svg">LV 4</span><span><i class="ph-fill ph-fire"></i>5 DAYS</span><span>1/2 TODAY</span></div>
+        <div class="boss">
+          <small>TONIGHT'S BOSS</small>
+          <img src="assets/germs/red.png">
+          <b style="font-family:'Kenney Future';font-size:14px">PLAQUE TRIPLETS</b>
+          <div class="hp" style="margin-top:8px"><i></i></div>
+        </div>
+        <button class="kbtn">BRUSH!</button>
+        <div class="row">
+          <div><img src="assets/kenney/star_yellow.svg"></div>
+          <div><img src="assets/kenney/star_green.svg"></div>
+          <div><img src="assets/kenney/star_red.svg"></div>
+          <div class="lock"><img src="assets/kenney/star_grey.svg"></div>
+        </div>
+        <div class="boss" style="text-align:left;margin-top:14px;padding:10px 12px"><small>DAILY QUEST</small>
+          <div style="font:12px 'Kenney Future';margin:4px 0 6px">CLEAN ALL 6 ZONES TWICE</div><div class="hp" style="height:10px;border-color:#c8d4e0"><i style="width:50%;background:linear-gradient(#7ee08f,#3fbf5c)"></i></div></div>
+      </div></div>
+      <div class="phone"><div class="scr">
+        <div class="cam"><img src="assets/storyset/oral-care-bro.svg" style="background:#dff3ff"></div>
+        <div class="hud"><div class="t">1:12</div><div class="stars"><img src="assets/kenney/star_yellow.svg"><img src="assets/kenney/star_yellow.svg"><img src="assets/kenney/star_outline_depth_grey.svg"></div></div>
+        <div class="lot pop" data-src="assets/lottie/bubble-explosion-vRuWwfpbSh.json"></div>
+        <div class="callout">COMBO X3!</div>
+        <div class="zones">
+          <div class="z done"><img src="assets/kenney/star_yellow.svg">TOP L</div>
+          <div class="z on"><img src="assets/germs/green.png">TOP MID<div class="hp"><i style="width:40%"></i></div></div>
+          <div class="z"><img src="assets/germs/pink.png">TOP R<div class="hp"><i></i></div></div>
+          <div class="z done"><img src="assets/kenney/star_yellow.svg">BOT L</div>
+          <div class="z"><img src="assets/germs/purple.png">BOT MID<div class="hp"><i></i></div></div>
+          <div class="z"><img src="assets/germs/orange.png">BOT R<div class="hp"><i></i></div></div>
+        </div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ===================== B ===================== -->
+  <section class="option b">
+    <header><span class="tag">B</span><h2>Sticker Book</h2><p>A warm, hand-drawn scrapbook. Thick ink outlines, Storyset scenes, and germs you "peel off" and collect as stickers. Calm enough for little kids, not babyish for older ones.</p></header>
+    <div class="phones">
+      <div class="phone"><div class="scr">
+        <div class="hdr"><b>EZBrush<span>+</span></b><span class="chip"><i class="ph-fill ph-fire" style="color:#ff6f59"></i> 5</span></div>
+        <div class="hero">
+          <img src="assets/storyset/kids-high-five-pana.svg">
+          <h3>Evening brush time!</h3>
+          <p>3 more for a new sticker page</p>
+        </div>
+        <button class="btn">Start brushing</button>
+        <h4>Germs you caught</h4>
+        <div class="stickers">
+          <div class="stk got"><img src="assets/germs/green.png"></div>
+          <div class="stk got"><img src="assets/germs/pink.png"></div>
+          <div class="stk got"><img src="assets/germs/yellow.png"></div>
+          <div class="stk"><img src="assets/germs/orange.png"></div>
+        </div>
+        <h4>This week</h4>
+        <div style="display:flex;gap:6px;padding:0 18px"><div style="flex:1;text-align:center;font-size:12px;font-weight:600">M<div style="height:26px;margin-top:2px;border:2px solid #3b2a1e;border-radius:8px;background:#7fd89a"></div></div><div style="flex:1;text-align:center;font-size:12px;font-weight:600">T<div style="height:26px;margin-top:2px;border:2px solid #3b2a1e;border-radius:8px;background:#7fd89a"></div></div><div style="flex:1;text-align:center;font-size:12px;font-weight:600">W<div style="height:26px;margin-top:2px;border:2px solid #3b2a1e;border-radius:8px;background:#ffd66b"></div></div><div style="flex:1;text-align:center;font-size:12px;font-weight:600">T<div style="height:26px;margin-top:2px;border:2px solid #3b2a1e;border-radius:8px;background:#7fd89a"></div></div><div style="flex:1;text-align:center;font-size:12px;font-weight:600">F<div style="height:26px;margin-top:2px;border:2px solid #3b2a1e;border-radius:8px;background:#7fd89a"></div></div><div style="flex:1;text-align:center;font-size:12px;font-weight:600">S<div style="height:26px;margin-top:2px;border:2px solid #3b2a1e;border-radius:8px;background:#ffd66b"></div></div><div style="flex:1;text-align:center;font-size:12px;font-weight:600">S<div style="height:26px;margin-top:2px;border:2px solid #3b2a1e;border-radius:8px;background:#fff"></div></div></div>
+      </div></div>
+      <div class="phone"><div class="scr">
+        <div class="cam">
+          <div class="timer">1:12</div>
+          <div class="frame"><img src="assets/storyset/at-the-bathroom-rafiki.svg"></div>
+          <div class="bubble">Top front now!</div>
+          <div class="mouth">
+            <div class="done"><img src="assets/kenney/star_yellow.svg" style="width:30px"><span>top L</span></div>
+            <div class="on"><img src="assets/germs/green.png"><span>top</span></div>
+            <div><img src="assets/germs/pink.png"><span>top R</span></div>
+            <div class="done"><img src="assets/kenney/star_yellow.svg" style="width:30px"><span>bottom L</span></div>
+            <div><img src="assets/germs/purple.png"><span>bottom</span></div>
+            <div><img src="assets/germs/orange.png"><span>bottom R</span></div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ===================== C ===================== -->
+  <section class="option c">
+    <header><span class="tag">C</span><h2>Super Smile Hero</h2><p>Night-sky adventure for older kids and tweens. An animated tooth hero with a magic wand as the mascot, gold XP, a progress ring, and a "germ squad" to wipe out each night.</p></header>
+    <div class="phones">
+      <div class="phone"><div class="scr">
+        <div class="sky"></div>
+        <div class="ttl">EZBrush<span>+</span></div>
+        <div class="lot mascot" data-src="assets/lottie/cartoon-tooth-character-holding-wand-star-uHSffsUpTG.json"></div>
+        <div class="lvl"><b>Enamel Knight</b><small>LV 7</small><div class="xp"><i></i></div></div>
+        <div class="trio"><div><b>5</b><small>STREAK</small></div><div><b>1/2</b><small>TODAY</small></div><div><b>38</b><small>BATTLES</small></div></div>
+        <button class="go">Power up!</button>
+        <div class="trio" style="margin-top:18px;grid-template-columns:repeat(4,1fr)">
+          <div><img src="assets/kenney/star_yellow.svg" style="width:30px;margin:0 auto"></div><div><img src="assets/kenney/star_green.svg" style="width:30px;margin:0 auto"></div><div><img src="assets/kenney/star_red.svg" style="width:30px;margin:0 auto"></div><div style="opacity:.35"><img src="assets/kenney/star_grey.svg" style="width:30px;margin:0 auto"></div>
+        </div>
+      </div></div>
+      <div class="phone"><div class="scr">
+        <div class="cam"><img src="assets/storyset/oral-care-rafiki.svg" style="background:#e8eeff"></div>
+        <div class="ring"><span>1:12</span></div>
+        <div class="lot mini" data-src="assets/lottie/cartoon-tooth-character-holding-wand-star-uHSffsUpTG.json"></div>
+        <div class="shout">Zap 'em!</div>
+        <div class="germbar"><h5>GERM SQUAD · 2 / 6 DEFEATED</h5>
+          <div class="gl">
+            <div class="done"><img src="assets/germs/purple.png"></div>
+            <div class="on"><img src="assets/germs/green.png"></div>
+            <div><img src="assets/germs/red.png"></div>
+            <div class="done"><img src="assets/germs/yellow.png"></div>
+            <div><img src="assets/germs/pink.png"></div>
+            <div><img src="assets/germs/orange.png"></div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ===================== D ===================== -->
+  <section class="option d">
+    <header><span class="tag">D</span><h2>Candy Clinic</h2><p>Soft pastels and a bouncy cartoon-tooth buddy who reacts as you brush. The friendliest of the four, and best for younger kids. The weekly calendar doubles as the parent view.</p></header>
+    <div class="phones">
+      <div class="phone"><div class="scr">
+        <div class="blob" style="width:160px;height:160px;background:#ffd0e4;left:-50px;top:120px"></div>
+        <div class="blob" style="width:120px;height:120px;background:#c9f0ff;right:-40px;top:260px"></div>
+        <div class="hi"><b>Hi Maya!<small>Ready to sparkle?</small></b><div class="av"><img src="assets/kenney/star_yellow.svg"></div></div>
+        <div class="lot mascot" data-src="assets/lottie/cartoon-tooth-character-uf3C2cOfKE.json"></div>
+        <div class="card">
+          <div class="days">
+            <div>M<i class="two"></i></div><div>T<i class="two"></i></div><div>W<i class="one"></i></div><div>T<i class="two"></i></div><div>F<i class="two"></i></div><div>S<i class="one today"></i></div><div>S<i></i></div>
+          </div>
+          <div class="note">5 day streak · 9 of 12 brushes this week</div>
+        </div>
+        <button class="kgo"><img src="assets/kenney/star_yellow.svg">Let's brush!</button>
+      </div></div>
+      <div class="phone"><div class="scr">
+        <div class="cam"><img class="bg" src="assets/storyset/oral-care-pana.svg" style="background:#fff5fa"></div>
+        <div class="topbar"><div class="time">1:12</div><div class="prog"><i></i></div></div>
+        <div class="lot pal" data-src="assets/lottie/cartoon-tooth-character-uf3C2cOfKE.json"></div>
+        <div class="say">So shiny!</div>
+        <div class="tooth6">
+          <div class="done"><img src="assets/kenney/star_green.svg">top left</div>
+          <div class="on"><img src="assets/germs/green.png">top</div>
+          <div><img src="assets/germs/pink.png">top right</div>
+          <div class="done"><img src="assets/kenney/star_green.svg">bottom left</div>
+          <div><img src="assets/germs/yellow.png">bottom</div>
+          <div><img src="assets/germs/purple.png">bottom right</div>
+        </div>
+      </div></div>
+    </div>
+  </section>
+
+  <p class="credits">The camera area shows a Storyset illustration as a stand-in; the real app shows the live camera feed there.<br>
+  Assets: Kenney UI Pack (CC0) · Storyset illustrations by Freepik (free with attribution) · LottieFiles free animations (Lottie Simple License) · "Random Germs/Amoeba Sprites" by ChiliGames on OpenGameArt (CC-BY-SA 3.0).</p>
+</div>
+<script>
+document.querySelectorAll(".lot").forEach(el => lottie.loadAnimation({ container: el, path: el.dataset.src, renderer: "svg", loop: true, autoplay: true }));
+</script>
+</body>
+</html>
