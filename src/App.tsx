@@ -44,6 +44,11 @@ export default function App() {
     setScreen("results");
   }
 
+  function setProfile(profile: P.Progress["profile"]) {
+    const next = { ...progress, profile };
+    P.save(next); setProgress(next);
+  }
+
   function setTheme(theme: P.ThemeId) {
     const next = { ...progress, theme };
     P.save(next); setProgress(next);
@@ -60,7 +65,7 @@ export default function App() {
   }, [progress.theme, screen, muted]);
   const toggleMute = () => { setMuted(!muted, music[progress.theme]); setMutedState(!muted); };
 
-  if (screen === "play") return <Play theme={progress.theme} demo={demo} onDone={finish} onQuit={() => setScreen("home")} />;
+  if (screen === "play") return <Play theme={progress.theme} profile={progress.profile} demo={demo} onDone={finish} onQuit={() => setScreen("home")} />;
   if (screen === "results" && result) return <Results result={result} theme={progress.theme} onContinue={() => setScreen("home")} />;
-  return <Home progress={progress} onStart={() => { setDemo(false); setScreen("play"); }} onDemo={() => { setDemo(true); setScreen("play"); }} onTheme={setTheme} muted={muted} onMute={toggleMute} />;
+  return <Home progress={progress} onStart={() => { setDemo(false); setScreen("play"); }} onDemo={() => { setDemo(true); setScreen("play"); }} onTheme={setTheme} onProfile={setProfile} muted={muted} onMute={toggleMute} />;
 }

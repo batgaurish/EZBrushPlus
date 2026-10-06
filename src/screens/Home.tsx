@@ -3,10 +3,12 @@ import * as P from "../progress";
 import { BADGE_ICONS } from "../icons";
 import { BOSSES, kenney, lottie } from "../assets";
 import Lottie from "../Lottie";
+import TechniqueCard from "../TechniqueCard";
+import { AGE_GROUPS, techniqueFor, type Profile } from "../techniques";
 import { play } from "../sound";
 import { sfx } from "../assets";
 
-interface Props { progress: P.Progress; onStart: () => void; onTheme: (t: P.ThemeId) => void; muted: boolean; onMute: () => void; onDemo: () => void }
+interface Props { onProfile: (p: Profile) => void; progress: P.Progress; onStart: () => void; onTheme: (t: P.ThemeId) => void; muted: boolean; onMute: () => void; onDemo: () => void }
 
 const THEMES: { id: P.ThemeId; name: string }[] = [
   { id: "arcade", name: "Arcade" },
@@ -14,7 +16,7 @@ const THEMES: { id: P.ThemeId; name: string }[] = [
   { id: "candy", name: "Candy" },
 ];
 
-export default function Home({ progress, onStart, onTheme, muted, onMute, onDemo }: Props) {
+export default function Home({ progress, onStart, onTheme, muted, onMute, onDemo, onProfile }: Props) {
   const { lvl, into, need } = P.levelInfo(progress.xp);
   const stats = {
     lvl, into, need,
@@ -40,6 +42,8 @@ export default function Home({ progress, onStart, onTheme, muted, onMute, onDemo
       {t === "arcade" && <ArcadeHero s={stats} onStart={start} />}
       {t === "hero" && <HeroHero s={stats} onStart={start} />}
       {t === "candy" && <CandyHero s={stats} onStart={start} progress={progress} />}
+
+      <ProfileCard profile={progress.profile} onChange={onProfile} />
 
       <button className="demo-btn" onClick={() => { play(sfx.tap); onDemo(); }}>
         <Presentation size={18} weight="fill" /> Demo mode <small>brush a teeth model</small>
@@ -171,6 +175,33 @@ function Badges({ progress }: { progress: P.Progress }) {
           );
         })}
       </ul>
+    </section>
+  );
+}
+
+/* ---------- who's brushing: picks the technique coach ---------- */
+function ProfileCard({ profile, onChange }: { profile: Profile; onChange: (p: Profile) => void }) {
+  return (
+    <section className="card profile">
+      <h2>Brushing coach</h2>
+      <div className="profile-body">
+        <TechniqueCard profile={profile} />
+        <div className="row-wrap">
+          <div className="row-chips">
+            <span>Age</span>
+            {AGE_GROUPS.map(a => (
+              <button key={a} className={`chip-btn ${profile.age === a ? "on" : ""}`} onClick={() => { play(sfx.tap); onChange({ ...profile, age: a }); }}>{a}</button>
+            ))}
+          </div>
+          <div className="row-chips">
+            <span>Braces</span>
+            {[false, true].map(b => (
+              <button key={String(b)} className={`chip-btn ${profile.braces === b ? "on" : ""}`} onClick={() => { play(sfx.tap); onChange({ ...profile, braces: b }); }}>{b ? "Yes" : "No"}</button>
+            ))}
+          </div>
+          <p className="tq-note">{techniqueFor(profile).note}</p>
+        </div>
+      </div>
     </section>
   );
 }

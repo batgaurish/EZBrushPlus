@@ -8,13 +8,24 @@ This is a non-commercial proof of concept built for an academic project.
 
 ## How it works
 
-- **Brushing detection, on the device.** MediaPipe Face Landmarker finds the mouth, and Hand Landmarker finds the hand holding the brush. A brush stroke counts when the hand is near the mouth and moving back and forth. Video never leaves the device.
+- **Brushing detection, on the device.** MediaPipe Face Landmarker finds the mouth and Hand Landmarker tracks the hand. An EfficientDet-Lite2 object detector confirms a real toothbrush once per session; after that the brush can stay hidden in the mouth (so kids keep good technique) and its head is projected from the hand pose. A stroke counts when a gripping hand makes quick back-and-forth movements at the mouth. Video never leaves the device.
 - **Six mouth zones.** The hand's position relative to the lips decides the zone: top or bottom, and left, front or right. Each zone needs about 20 seconds, for the dentist-recommended 2 minutes in total.
 - **AR guide.** The camera view shows a 6-cell grid over the mouth. The next zone to brush pulses with a dashed outline and an arrow, and the zone you're brushing lights up green.
 - **Three switchable themes**, each with its own music:
   - **Germ Arcade:** a daily "boss" germ monster, health bars, combos and daily quests.
   - **Super Smile Hero:** a night-sky adventure with an animated tooth hero and a germ squad to defeat.
   - **Candy Clinic:** soft pastels and a bouncy tooth buddy, aimed at younger kids.
+
+## Brushing coach
+
+Pick the child's age group and whether they wear braces. An animated card (on the home screen and during brushing) loops the recommended technique for that profile, following ADA/AAPD paediatric guidance:
+
+| Profile | Technique |
+|---|---|
+| Ages 2–5 | Fones: big circles with teeth together; a grown-up helps; rice-grain to pea-sized toothpaste |
+| Ages 6–9 | Small circles, tilting toward the gums; back-and-forth on chewing tops; up-and-down inside the fronts |
+| Ages 10+ | Modified Bass: 45° to the gumline, tiny jiggles, then sweep away from the gums |
+| Braces | Angle down above the brackets, up below them, small circles on each bracket |
 
 ## Demo mode (teeth model)
 
@@ -65,6 +76,7 @@ All assets are free to use. Thanks to their creators.
 | Candy theme music | ["Flowerbed Fields [Loop]" by Zane Little Music](https://opengameart.org/content/flowerbed-fields-loop), OpenGameArt | CC0 |
 | Tooth mascots, confetti, pop and trophy animations | [LottieFiles](https://lottiefiles.com/free-animations/tooth) free animations | Lottie Simple License |
 | Illustrations (mockups) | [Storyset](https://storyset.com) by Freepik | Free with attribution |
+| Tooth and toothbrush (technique animations) | [Microsoft Fluent Emoji](https://github.com/microsoft/fluentui-emoji) | MIT |
 | Icons | [Phosphor Icons](https://phosphoricons.com) | MIT |
 | Fonts: Nunito, Lilita One, Baloo 2 | Google Fonts via Fontsource | OFL |
 

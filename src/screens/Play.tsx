@@ -5,6 +5,8 @@ import { TOTAL_MS, ZONE_LABEL } from "../game";
 import { germ, kenney, lottie, sfx } from "../assets";
 import type { ThemeId } from "../progress";
 import Lottie from "../Lottie";
+import TechniqueCard from "../TechniqueCard";
+import type { Profile } from "../techniques";
 import { play } from "../sound";
 
 export interface Outcome { zoneMs: Record<Zone, number>; bestComboMs: number; targetMs: number; demo: boolean }
@@ -16,7 +18,7 @@ let detector: BrushDetector | null = null; // models are reused across sessions
 const blank = () => Object.fromEntries(ZONES.map(z => [z, 0])) as Record<Zone, number>;
 const SHORT: Record<Zone, string> = { UL: "Top L", UF: "Top", UR: "Top R", LL: "Bottom L", LF: "Bottom", LR: "Bottom R" };
 
-export default function Play({ theme, demo = false, onDone, onQuit }: { theme: ThemeId; demo?: boolean; onDone: (o: Outcome) => void; onQuit: () => void }) {
+export default function Play({ theme, profile, demo = false, onDone, onQuit }: { theme: ThemeId; profile: Profile; demo?: boolean; onDone: (o: Outcome) => void; onQuit: () => void }) {
   const TOTAL = demo ? DEMO_MS : TOTAL_MS;
   const TARGET = TOTAL / 6;
   const [model, setModel] = useState<Box | null>(() => (demo ? loadModelBox() : null));
@@ -52,6 +54,7 @@ export default function Play({ theme, demo = false, onDone, onQuit }: { theme: T
       }
       if (!alive) return;
       setStatus("");
+      detector!.reset();
       play(sfx.start);
 
       const zoneMs = blank();
@@ -118,6 +121,7 @@ export default function Play({ theme, demo = false, onDone, onQuit }: { theme: T
         <button className="quit" onClick={onQuit} aria-label="Stop brushing"><X size={20} weight="bold" /></button>
       </div>
 
+      <TechniqueCard profile={profile} />
       {theme !== "arcade" && <Lottie src={theme === "hero" ? lottie.wandTooth : lottie.pasteTooth} className="buddy" />}
       <div className={`coach ${theme !== "arcade" ? "bubble" : ""}`}>{mult > 0 && theme === "arcade" ? `COMBO ×${mult + 1}!` : line}</div>
       {pop && <Lottie key={pop.key} src={lottie.pop} loop={false} className="pop" />}
@@ -152,8 +156,8 @@ function coachLine(f: Frame | null, zoneMs: Record<Zone, number>, TARGET: number
   const say = (s: string) => (loud ? s.toUpperCase() : s);
   if (!f?.face) return say(demo ? "Mark the teeth model" : "Show me your smile!");
   if (!f.handNearMouth) return say(demo ? "Bring the brush to the model!" : "Grab your toothbrush!");
+  if (!f.brushSeen) return say("Show your toothbrush to the camera!");
   if (!f.grip) return say("Hold your brush like a superhero!");
-  if (!f.brushSeen) return say("Let the camera see your brush!");
   if (!f.brushing) return say("Little circles!");
   const next = ZONES.find(z => zoneMs[z] < TARGET);
   if (f.zone && zoneMs[f.zone] >= TARGET && next) return say(`Sparkly! Now the ${ZONE_LABEL[next].toLowerCase()}`);
@@ -246,6 +250,14 @@ function drawOverlay(c: HTMLCanvasElement, v: HTMLVideoElement, f: Frame | null,
   }
 
   drawTracking(ctx, c, f, color);
+
+  // estimated brush head (from the hand pose) when the brush itself is hidden
+  if (f.brushHead && !f.brushBox) {
+    ctx.save();
+    ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.arc(f.brushHead.x * c.width, f.brushHead.y * c.height, 12, 0, 7); ctx.stroke();
+    ctx.restore();
+  }
 
   // sparkles at the brush head
   if (f.brushing && f.brushHead) {

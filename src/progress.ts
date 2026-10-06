@@ -1,3 +1,5 @@
+import { DEFAULT_PROFILE, type Profile } from "./techniques";
+
 export interface Session { date: string; ts: number; score: number; xp: number }
 export type ThemeId = "arcade" | "hero" | "candy";
 export interface Progress {
@@ -5,6 +7,7 @@ export interface Progress {
   sessions: Session[];
   badges: string[];
   theme: ThemeId;
+  profile: Profile;
 }
 
 const KEY = "brushquest.v1";
@@ -12,9 +15,9 @@ const KEY = "brushquest.v1";
 export function load(): Progress {
   try {
     const p = JSON.parse(localStorage.getItem(KEY) ?? "");
-    if (p && Array.isArray(p.sessions)) return { theme: "arcade", ...p };
+    if (p && Array.isArray(p.sessions)) return { theme: "arcade", profile: DEFAULT_PROFILE, ...p };
   } catch {}
-  return { xp: 0, sessions: [], badges: [], theme: "arcade" };
+  return { xp: 0, sessions: [], badges: [], theme: "arcade", profile: DEFAULT_PROFILE };
 }
 export function save(p: Progress) {
   try { localStorage.setItem(KEY, JSON.stringify(p)); } catch {}

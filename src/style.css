@@ -241,3 +241,47 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 .marker-hint { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); width: min(320px, 86vw); background: #000c; color: #fff; padding: 14px 18px; border-radius: 16px; text-align: center; font: 700 15px var(--body); pointer-events: none; }
 .marker-hint b { display: block; font: 20px var(--display); color: var(--accent); margin-bottom: 4px; }
 .marker-box { position: absolute; border: 3px dashed var(--accent); border-radius: 12px; background: #ffffff1a; pointer-events: none; }
+
+/* ============ TECHNIQUE COACH ============ */
+.technique { width: 168px; background: #fffffff2; color: #2b3a4a; border-radius: 18px; padding: 8px 10px 10px; box-shadow: 0 8px 24px #0004; }
+.tq-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; }
+.tq-head b { font: 15px var(--display); color: #2b3a4a; }
+.tq-head span { color: #7a8ea3; font-weight: 800; }
+.tq-scene { position: relative; width: 150px; height: 120px; margin: 2px auto 0; overflow: hidden; border-radius: 12px; background: #eaf6ff; }
+.tq-tooth { position: absolute; left: 40px; top: 12px; width: 92px; height: 92px; }
+.tq-gum { position: absolute; left: 30px; right: 8px; top: 82px; bottom: -6px; background: #ff9fb1; border-radius: 40% 40% 0 0 / 18px 18px 0 0; }
+.tq-wire { position: absolute; left: 48px; width: 80px; top: 56px; height: 3px; background: #8a96a3; border-radius: 2px; }
+.tq-bracket { position: absolute; left: 79px; top: 50px; width: 15px; height: 15px; background: #b8c2cc; border: 2px solid #7c8794; border-radius: 3px; }
+.tq-move { position: absolute; width: 0; height: 0; }
+/* head of the brush art sits ~28% / 22% into the image; that point is the pivot */
+.tq-brush { position: absolute; width: 64px; height: 64px; max-width: none; left: -18px; top: -14px; transform-origin: 18px 14px; filter: drop-shadow(0 2px 2px #0003); }
+.tq-step { margin: 6px 0 0; font: 800 13px/1.25 var(--body); text-align: center; color: #2b3a4a; }
+
+.m-circles    { animation: tq-circle .7s linear infinite; }
+.m-bigCircles { animation: tq-bigcircle 1.4s linear infinite; }
+.m-bass       { animation: tq-bass 2.2s ease-in-out infinite; }
+.m-chew       { animation: tq-chew .6s ease-in-out infinite alternate; }
+.m-inside     { animation: tq-flick .8s ease-in-out infinite; }
+.m-above, .m-below { animation: tq-jiggle .18s ease-in-out infinite alternate; }
+@keyframes tq-circle    { 0% { transform: translate(4px,0) } 25% { transform: translate(0,4px) } 50% { transform: translate(-4px,0) } 75% { transform: translate(0,-4px) } 100% { transform: translate(4px,0) } }
+@keyframes tq-bigcircle { 0% { transform: translate(10px,-6px) } 25% { transform: translate(0,10px) } 50% { transform: translate(-6px,0) } 75% { transform: translate(0,-14px) } 100% { transform: translate(10px,-6px) } }
+@keyframes tq-bass      { 0%, 10%, 20%, 30%, 40%, 50% { transform: translate(0,0) } 5%, 15%, 25%, 35%, 45% { transform: translate(3px,-1px) } 80% { transform: translate(6px,-22px) } 100% { transform: translate(0,0) } }
+@keyframes tq-chew      { from { transform: translateX(-16px) } to { transform: translateX(16px) } }
+@keyframes tq-flick     { 0%, 100% { transform: translateY(8px) } 50% { transform: translateY(-12px) } }
+@keyframes tq-jiggle    { from { transform: translateX(-3px) } to { transform: translateX(3px) } }
+
+.play .technique { position: absolute; right: 12px; z-index: 2; bottom: calc(max(14px, env(safe-area-inset-bottom)) + 330px); }
+[data-theme="arcade"] .play .technique { bottom: auto; top: calc(max(14px, env(safe-area-inset-top)) + 64px); }
+
+/* profile picker on home */
+.profile { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+.profile h2 { margin: 0; font: 18px var(--display); }
+.profile .row-chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.profile .row-chips > span { font-size: 13px; font-weight: 800; opacity: .7; min-width: 54px; }
+.chip-btn { border: 2px solid var(--card-edge); background: transparent; color: inherit; border-radius: 99px; padding: 4px 12px; font: 800 13px var(--body); }
+.chip-btn.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+[data-theme="arcade"] .chip-btn.on { color: var(--accent-ink); }
+.profile-body { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.profile-body .technique { box-shadow: none; border: 2px solid var(--card-edge); }
+.profile-body .row-wrap { display: flex; flex-direction: column; gap: 10px; flex: 1; min-width: 180px; }
+.tq-note { margin: 0; font-size: 12px; opacity: .75; }
