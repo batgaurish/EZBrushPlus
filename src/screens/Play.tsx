@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { X } from "@phosphor-icons/react";
-import { BrushDetector, ZONES, type Zone, type Frame } from "../detector";
+import { BrushDetector, ZONES, type Zone, type Frame, type Pt } from "../detector";
 import { TOTAL_MS, ZONE_LABEL, ZONE_TARGET_MS } from "../game";
 import { germ, kenney, lottie, sfx } from "../assets";
 import type { ThemeId } from "../progress";
@@ -71,7 +71,7 @@ export default function Play({ theme, onDone, onQuit }: { theme: ThemeId; onDone
           }
         } else combo = Math.max(0, combo - dt * 2);
 
-        drawOverlay(canvas.current!, v, f, ZONES.find(z => zoneMs[z] < ZONE_TARGET_MS) ?? null, AR_COLOR[themeRef.current], now);
+        drawOverlay(canvas.current!, v, f, zoneMs, AR_COLOR[themeRef.current], now);
         if (now - lastHud > 100) {
           lastHud = now;
           setHud({ left: Math.max(0, TOTAL_MS - elapsed), zoneMs: { ...zoneMs }, zone: f?.zone ?? null, combo, frame: f });
@@ -112,7 +112,7 @@ export default function Play({ theme, onDone, onQuit }: { theme: ThemeId; onDone
       </div>
 
       {theme !== "arcade" && <Lottie src={theme === "hero" ? lottie.wandTooth : lottie.pasteTooth} className="buddy" />}
-      <div className={`coach ${theme !== "arcade" ? "bubble" : ""}`}>{mult > 0 && theme === "arcade" ? `COMBO X${mult + 1}!` : line}</div>
+      <div className={`coach ${theme !== "arcade" ? "bubble" : ""}`}>{mult > 0 && theme === "arcade" ? `COMBO ×${mult + 1}!` : line}</div>
       {pop && <Lottie key={pop.key} src={lottie.pop} loop={false} className="pop" />}
 
       <div className="zones">
@@ -141,6 +141,8 @@ function coachLine(f: Frame | null, zoneMs: Record<Zone, number>, theme: ThemeId
   const say = (s: string) => (loud ? s.toUpperCase() : s);
   if (!f?.face) return say("Show me your smile!");
   if (!f.handNearMouth) return say("Grab your toothbrush!");
+  if (!f.grip) return say("Hold your brush like a superhero!");
+  if (!f.brushSeen) return say("Let the camera see your brush!");
   if (!f.brushing) return say("Little circles!");
   const next = ZONES.find(z => zoneMs[z] < ZONE_TARGET_MS);
   if (f.zone && zoneMs[f.zone] >= ZONE_TARGET_MS && next) return say(`Sparkly! Now the ${ZONE_LABEL[next].toLowerCase()}`);
@@ -149,75 +151,89 @@ function coachLine(f: Frame | null, zoneMs: Record<Zone, number>, theme: ThemeId
 
 const AR_COLOR: Record<ThemeId, string> = { arcade: "#ffcf3d", hero: "#ffd23f", candy: "#ff6fae" };
 
-// Mouth split into 6 cells. Canvas is mirrored by CSS like the video, so we draw in raw camera
-// coordinates: raw-left is the user's RIGHT side (matches the detector's zone logic).
-const COLS: Record<string, number> = { R: 0, F: 1, L: 2 };
-function cellRect(z: Zone, cx: number, cy: number, w: number) {
-  const W = w * 2.4, H = w * 1.5;
-  const cw = W / 3, ch = H / 2;
-  const col = COLS[z[1]], row = z[0] === "U" ? 0 : 1;
-  return { x: cx - W / 2 + col * cw, y: cy - H / 2 + row * ch, w: cw, h: ch };
+// Each jaw's lip contour (11 points, user's right corner -> left corner) is split into
+// right / front / left thirds. Canvas is CSS-mirrored like the video, so raw coords line up.
+const SEG: Record<string, [number, number]> = { R: [0, 3], F: [3, 7], L: [7, 10] };
+
+function archPoints(f: Frame, z: Zone, c: HTMLCanvasElement): Pt[] {
+  const m = f.mouth!, lips = f.lips!;
+  const line = z[0] === "U" ? lips.upper : lips.lower;
+  const [a, b] = SEG[z[1]];
+  const cx = m.x, cy = m.y;
+  // push the curve slightly outward from the mouth centre so it sits on the teeth line, not on the lip edge
+  const k = 1.18, lift = (z[0] === "U" ? -1 : 1) * m.w * 0.06;
+  return line.slice(a, b + 1).map(p => ({ x: (cx + (p.x - cx) * k) * c.width, y: (cy + (p.y - cy) * k + lift) * c.height }));
 }
 
-function roundRect(ctx: CanvasRenderingContext2D, r: { x: number; y: number; w: number; h: number }, rad: number) {
+function strokeCurve(ctx: CanvasRenderingContext2D, pts: Pt[]) {
   ctx.beginPath();
-  ctx.roundRect(r.x + 3, r.y + 3, r.w - 6, r.h - 6, rad);
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length - 1; i++) {
+    const mx = (pts[i].x + pts[i + 1].x) / 2, my = (pts[i].y + pts[i + 1].y) / 2;
+    ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);
+  }
+  const last = pts[pts.length - 1];
+  ctx.lineTo(last.x, last.y);
+  ctx.stroke();
 }
 
-function drawOverlay(c: HTMLCanvasElement, v: HTMLVideoElement, f: Frame | null, target: Zone | null, color: string, now: number) {
+function drawOverlay(c: HTMLCanvasElement, v: HTMLVideoElement, f: Frame | null, zoneMs: Record<Zone, number>, color: string, now: number) {
   if (c.width !== v.videoWidth) { c.width = v.videoWidth; c.height = v.videoHeight; }
   const ctx = c.getContext("2d")!;
   ctx.clearRect(0, 0, c.width, c.height);
-  if (!f?.mouth) return;
-  const cx = f.mouth.x * c.width, cy = f.mouth.y * c.height, w = f.mouth.w * c.width;
-  const rad = w * 0.18;
+  if (!f?.mouth || !f.lips) return;
+  const thick = f.mouth.w * c.width * 0.14;
+  const target = ZONES.find(z => zoneMs[z] < ZONE_TARGET_MS) ?? null;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
 
-  // faint grid of all six cells
-  ctx.setLineDash([]);
-  ctx.lineWidth = 1.5;
-  ctx.strokeStyle = "rgba(255,255,255,.35)";
-  for (const z of ZONES) { roundRect(ctx, cellRect(z, cx, cy, w), rad); ctx.stroke(); }
-
-  // cell being brushed right now: soft green fill
-  if (f.brushing && f.zone) {
-    roundRect(ctx, cellRect(f.zone, cx, cy, w), rad);
-    ctx.fillStyle = "rgba(90,209,122,.35)";
-    ctx.fill();
+  for (const z of ZONES) {
+    const pts = archPoints(f, z, c);
+    const clean = zoneMs[z] >= ZONE_TARGET_MS;
+    ctx.save();
+    ctx.setLineDash([]);
+    if (f.brushing && f.zone === z) {
+      ctx.strokeStyle = "rgba(90,209,122,.9)";
+      ctx.lineWidth = thick * 1.25;
+      ctx.shadowColor = "#5ad17a"; ctx.shadowBlur = 18;
+    } else if (z === target) {
+      const pulse = 0.5 + 0.5 * Math.sin(now / 180);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = thick * (1 + pulse * 0.25);
+      ctx.shadowColor = color; ctx.shadowBlur = 10 + pulse * 16;
+      ctx.setLineDash([thick * 1.1, thick * 0.7]);
+      ctx.lineDashOffset = -now / 20;
+    } else {
+      ctx.strokeStyle = clean ? "rgba(90,209,122,.45)" : "rgba(255,255,255,.35)";
+      ctx.lineWidth = thick * 0.6;
+    }
+    strokeCurve(ctx, pts);
+    ctx.restore();
   }
 
-  // target cell: pulsing, marching dashed outline with glow + arrow pointing in
+  // little arrow pointing at the target segment from outside the mouth
   if (target) {
-    const r = cellRect(target, cx, cy, w);
-    const pulse = 0.5 + 0.5 * Math.sin(now / 180);
-    ctx.save();
-    ctx.shadowColor = color;
-    ctx.shadowBlur = 12 + pulse * 14;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 4 + pulse * 2;
-    ctx.setLineDash([14, 8]);
-    ctx.lineDashOffset = -now / 25;
-    roundRect(ctx, r, rad);
-    ctx.stroke();
-    ctx.restore();
-
+    const pts = archPoints(f, target, c);
+    const mid = pts[Math.floor(pts.length / 2)];
     const up = target[0] === "U";
-    const ax = r.x + r.w / 2, ay = up ? r.y - 10 - pulse * 8 : r.y + r.h + 10 + pulse * 8;
-    const s = w * 0.16, d = up ? 1 : -1;
+    const pulse = 0.5 + 0.5 * Math.sin(now / 180);
+    const s = thick * 0.9, gap = thick * 1.4 + pulse * thick * 0.6;
+    const ay = up ? mid.y - gap : mid.y + gap, d = up ? 1 : -1;
     ctx.beginPath();
-    ctx.moveTo(ax, ay);
-    ctx.lineTo(ax - s, ay - d * s);
-    ctx.lineTo(ax + s, ay - d * s);
+    ctx.moveTo(mid.x, ay);
+    ctx.lineTo(mid.x - s, ay - d * s * 1.2);
+    ctx.lineTo(mid.x + s, ay - d * s * 1.2);
     ctx.closePath();
     ctx.fillStyle = color;
     ctx.fill();
   }
 
-  // sparkles where the brush is
-  if (f.brushing && f.hand) {
+  // sparkles at the brush head
+  if (f.brushing && f.brushHead) {
     for (let i = 0; i < 8; i++) {
       ctx.fillStyle = `rgba(255,255,255,${0.5 + Math.random() * 0.5})`;
       ctx.beginPath();
-      ctx.arc(f.hand.x * c.width + (Math.random() - 0.5) * 60, f.hand.y * c.height + (Math.random() - 0.5) * 60, 2 + Math.random() * 5, 0, 7);
+      ctx.arc(f.brushHead.x * c.width + (Math.random() - 0.5) * 50, f.brushHead.y * c.height + (Math.random() - 0.5) * 50, 2 + Math.random() * 4, 0, 7);
       ctx.fill();
     }
   }
