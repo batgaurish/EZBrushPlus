@@ -2,6 +2,8 @@
 
 A gamified toothbrushing coach for kids and teens. It runs in the browser on a laptop (using the webcam) and as an Android app. The camera watches you brush, works out which part of your mouth you're cleaning, and turns the two minutes into a game: germ monsters to defeat, stars, XP, streaks and trophies.
 
+**Try it in your browser:** https://batgaurish.github.io/EZBrushPlus/ · **Android APK:** [latest release](https://github.com/batgaurish/EZBrushPlus/releases/latest)
+
 This is a non-commercial proof of concept built for an academic project.
 
 ## How it works
