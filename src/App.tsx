@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import * as P from "./progress";
 import { ZONES } from "./detector";
-import { TIPS, ZONE_LABEL, ZONE_TARGET_MS, type Result } from "./game";
+import { TIPS, ZONE_LABEL, type Result } from "./game";
 import Home from "./screens/Home";
 import Play, { type Outcome } from "./screens/Play";
 import Results from "./screens/Results";
@@ -14,9 +14,10 @@ export default function App() {
   const [progress, setProgress] = useState(P.load);
   const [screen, setScreen] = useState<Screen>("home");
   const [result, setResult] = useState<Result | null>(null);
+  const [demo, setDemo] = useState(false);
 
   function finish(o: Outcome) {
-    const coverage = ZONES.map(z => Math.min(1, o.zoneMs[z] / ZONE_TARGET_MS));
+    const coverage = ZONES.map(z => Math.min(1, o.zoneMs[z] / o.targetMs));
     const score = Math.round((coverage.reduce((a, b) => a + b, 0) / 6) * 100);
     const clean = coverage.filter(c => c >= 1).length;
 
@@ -27,12 +28,12 @@ export default function App() {
 
     const session: P.Session = { date: P.dayKey(), ts: Date.now(), score, xp };
     const next: P.Progress = { ...progress, xp: progress.xp + xp, sessions: [...progress.sessions, session] };
-    const fresh = P.BADGES.filter(b => !next.badges.includes(b.id) && b.test(next, session)).map(b => b.id);
+    // Demo runs (teeth model) show the full results but don't touch the kid's real progress.
+    const fresh = o.demo ? [] : P.BADGES.filter(b => !next.badges.includes(b.id) && b.test(next, session)).map(b => b.id);
     next.badges = [...next.badges, ...fresh];
-    P.save(next);
+    if (!o.demo) { P.save(next); setProgress(next); }
 
-    const before = P.levelInfo(progress.xp).lvl, after = P.levelInfo(next.xp).lvl;
-    setProgress(next);
+    const before = P.levelInfo(progress.xp).lvl, after = o.demo ? before : P.levelInfo(next.xp).lvl;
     setResult({
       score, coverage, xp,
       missed: ZONES.filter((_, i) => coverage[i] < 0.6).map(z => ZONE_LABEL[z].toLowerCase()),
@@ -59,7 +60,7 @@ export default function App() {
   }, [progress.theme, screen, muted]);
   const toggleMute = () => { setMuted(!muted, music[progress.theme]); setMutedState(!muted); };
 
-  if (screen === "play") return <Play theme={progress.theme} onDone={finish} onQuit={() => setScreen("home")} />;
+  if (screen === "play") return <Play theme={progress.theme} demo={demo} onDone={finish} onQuit={() => setScreen("home")} />;
   if (screen === "results" && result) return <Results result={result} theme={progress.theme} onContinue={() => setScreen("home")} />;
-  return <Home progress={progress} onStart={() => setScreen("play")} onTheme={setTheme} muted={muted} onMute={toggleMute} />;
+  return <Home progress={progress} onStart={() => { setDemo(false); setScreen("play"); }} onDemo={() => { setDemo(true); setScreen("play"); }} onTheme={setTheme} muted={muted} onMute={toggleMute} />;
 }

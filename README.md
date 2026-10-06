@@ -16,6 +16,10 @@ This is a non-commercial proof of concept built for an academic project.
   - **Super Smile Hero:** a night-sky adventure with an animated tooth hero and a germ squad to defeat.
   - **Candy Clinic:** soft pastels and a bouncy tooth buddy, aimed at younger kids.
 
+## Demo mode (teeth model)
+
+For presentations, tap **Demo mode** on the home screen, point the camera at a dental teeth model, and drag a box around its teeth. The AR arches lock to that box, and brushing on the model is tracked with the same rules as a real face: a gripping hand, a detected toothbrush, and scrubbing strokes. Demo runs last 60 seconds and don't change the saved progress. The box is remembered; tap **Re-mark model** if the model moves.
+
 ## Why these features (research basis)
 
 | Finding | Feature in the app |

@@ -1,4 +1,4 @@
-import { LockSimple, SpeakerHigh, SpeakerSlash } from "@phosphor-icons/react";
+import { LockSimple, Presentation, SpeakerHigh, SpeakerSlash } from "@phosphor-icons/react";
 import * as P from "../progress";
 import { BADGE_ICONS } from "../icons";
 import { BOSSES, kenney, lottie } from "../assets";
@@ -6,7 +6,7 @@ import Lottie from "../Lottie";
 import { play } from "../sound";
 import { sfx } from "../assets";
 
-interface Props { progress: P.Progress; onStart: () => void; onTheme: (t: P.ThemeId) => void; muted: boolean; onMute: () => void }
+interface Props { progress: P.Progress; onStart: () => void; onTheme: (t: P.ThemeId) => void; muted: boolean; onMute: () => void; onDemo: () => void }
 
 const THEMES: { id: P.ThemeId; name: string }[] = [
   { id: "arcade", name: "Arcade" },
@@ -14,7 +14,7 @@ const THEMES: { id: P.ThemeId; name: string }[] = [
   { id: "candy", name: "Candy" },
 ];
 
-export default function Home({ progress, onStart, onTheme, muted, onMute }: Props) {
+export default function Home({ progress, onStart, onTheme, muted, onMute, onDemo }: Props) {
   const { lvl, into, need } = P.levelInfo(progress.xp);
   const stats = {
     lvl, into, need,
@@ -40,6 +40,10 @@ export default function Home({ progress, onStart, onTheme, muted, onMute }: Prop
       {t === "arcade" && <ArcadeHero s={stats} onStart={start} />}
       {t === "hero" && <HeroHero s={stats} onStart={start} />}
       {t === "candy" && <CandyHero s={stats} onStart={start} progress={progress} />}
+
+      <button className="demo-btn" onClick={() => { play(sfx.tap); onDemo(); }}>
+        <Presentation size={18} weight="fill" /> Demo mode <small>brush a teeth model</small>
+      </button>
 
       {t !== "candy" && <Week progress={progress} />}
       <Badges progress={progress} />

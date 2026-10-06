@@ -1,24 +1,30 @@
 import { useEffect, useRef, useState } from "react";
 import { X } from "@phosphor-icons/react";
-import { BrushDetector, ZONES, HAND_EDGES, type Zone, type Frame, type Pt } from "../detector";
-import { TOTAL_MS, ZONE_LABEL, ZONE_TARGET_MS } from "../game";
+import { BrushDetector, ZONES, HAND_EDGES, type Zone, type Frame, type Pt, type Box } from "../detector";
+import { TOTAL_MS, ZONE_LABEL } from "../game";
 import { germ, kenney, lottie, sfx } from "../assets";
 import type { ThemeId } from "../progress";
 import Lottie from "../Lottie";
 import { play } from "../sound";
 
-export interface Outcome { zoneMs: Record<Zone, number>; bestComboMs: number }
+export interface Outcome { zoneMs: Record<Zone, number>; bestComboMs: number; targetMs: number; demo: boolean }
+
+const DEMO_MS = 60_000; // shorter run for live demos
 
 let detector: BrushDetector | null = null; // models are reused across sessions
 
 const blank = () => Object.fromEntries(ZONES.map(z => [z, 0])) as Record<Zone, number>;
 const SHORT: Record<Zone, string> = { UL: "Top L", UF: "Top", UR: "Top R", LL: "Bottom L", LF: "Bottom", LR: "Bottom R" };
 
-export default function Play({ theme, onDone, onQuit }: { theme: ThemeId; onDone: (o: Outcome) => void; onQuit: () => void }) {
+export default function Play({ theme, demo = false, onDone, onQuit }: { theme: ThemeId; demo?: boolean; onDone: (o: Outcome) => void; onQuit: () => void }) {
+  const TOTAL = demo ? DEMO_MS : TOTAL_MS;
+  const TARGET = TOTAL / 6;
+  const [model, setModel] = useState<Box | null>(() => (demo ? loadModelBox() : null));
+  const modelRef = useRef(model); modelRef.current = model;
   const video = useRef<HTMLVideoElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const [status, setStatus] = useState("Starting camera…");
-  const [hud, setHud] = useState({ left: TOTAL_MS, zoneMs: blank(), zone: null as Zone | null, combo: 0, frame: null as Frame | null });
+  const [hud, setHud] = useState({ left: TOTAL, zoneMs: blank(), zone: null as Zone | null, combo: 0, frame: null as Frame | null });
   const [pop, setPop] = useState<{ zone: Zone; key: number } | null>(null);
   const done = useRef(onDone); done.current = onDone;
   const themeRef = useRef(theme); themeRef.current = theme;
@@ -56,7 +62,8 @@ export default function Play({ theme, onDone, onQuit }: { theme: ThemeId; onDone
         const now = performance.now();
         const dt = Math.min(100, now - last); last = now;
         const v = video.current!;
-        const f = v.readyState >= 2 ? detector!.detect(v, now) : null;
+        const waiting = demo && !modelRef.current; // demo needs the model marked first
+        const f = v.readyState >= 2 && !waiting ? detector!.detect(v, now, demo ? modelRef.current : null) : null;
 
         if (f?.brushing) started = true;
         if (started) elapsed += dt;
@@ -64,19 +71,19 @@ export default function Play({ theme, onDone, onQuit }: { theme: ThemeId; onDone
           zoneMs[f.zone] += dt;
           if (Math.floor((combo + dt) / 5000) > Math.floor(combo / 5000)) play(sfx.combo, 0.5);
           combo += dt; best = Math.max(best, combo);
-          if (zoneMs[f.zone] >= ZONE_TARGET_MS && !cleaned.has(f.zone)) {
+          if (zoneMs[f.zone] >= TARGET && !cleaned.has(f.zone)) {
             cleaned.add(f.zone);
             play(sfx.pop); setTimeout(() => play(sfx.clean, 0.5), 120);
             setPop({ zone: f.zone, key: now });
           }
         } else combo = Math.max(0, combo - dt * 2);
 
-        drawOverlay(canvas.current!, v, f, zoneMs, AR_COLOR[themeRef.current], now);
+        drawOverlay(canvas.current!, v, f, zoneMs, TARGET, AR_COLOR[themeRef.current], now, demo ? modelRef.current : null);
         if (now - lastHud > 100) {
           lastHud = now;
-          setHud({ left: Math.max(0, TOTAL_MS - elapsed), zoneMs: { ...zoneMs }, zone: f?.zone ?? null, combo, frame: f });
+          setHud({ left: Math.max(0, TOTAL - elapsed), zoneMs: { ...zoneMs }, zone: f?.zone ?? null, combo, frame: f });
         }
-        if (elapsed >= TOTAL_MS) { done.current({ zoneMs, bestComboMs: best }); return; }
+        if (elapsed >= TOTAL) { done.current({ zoneMs, bestComboMs: best, targetMs: TARGET, demo }); return; }
         raf = requestAnimationFrame(tick);
       };
       raf = requestAnimationFrame(tick);
@@ -87,10 +94,10 @@ export default function Play({ theme, onDone, onQuit }: { theme: ThemeId; onDone
 
   const secs = Math.ceil(hud.left / 1000);
   const clock = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}`;
-  const elapsedFrac = 1 - hud.left / TOTAL_MS;
+  const elapsedFrac = 1 - hud.left / TOTAL;
   const mult = Math.floor(hud.combo / 5000);
-  const cleanCount = ZONES.filter(z => hud.zoneMs[z] >= ZONE_TARGET_MS).length;
-  const line = status || coachLine(hud.frame, hud.zoneMs, theme);
+  const cleanCount = ZONES.filter(z => hud.zoneMs[z] >= TARGET).length;
+  const line = status || (demo && !model ? "Mark the teeth model" : coachLine(hud.frame, hud.zoneMs, TARGET, theme, demo));
   const goodStars = Math.floor(cleanCount / 2);
 
   return (
@@ -115,11 +122,15 @@ export default function Play({ theme, onDone, onQuit }: { theme: ThemeId; onDone
       <div className={`coach ${theme !== "arcade" ? "bubble" : ""}`}>{mult > 0 && theme === "arcade" ? `COMBO ×${mult + 1}!` : line}</div>
       {pop && <Lottie key={pop.key} src={lottie.pop} loop={false} className="pop" />}
 
+      {demo && (model
+        ? <button className="demo-chip" onClick={() => setModel(null)}>DEMO · Re-mark model</button>
+        : <ModelMarker video={video} onDone={b => { saveModelBox(b); setModel(b); }} />)}
+
       <div className="zones">
         {theme === "hero" && <h5>GERM SQUAD · {cleanCount} / 6 DEFEATED</h5>}
         <div className="zone-grid">
           {ZONES.map(z => {
-            const p = Math.min(1, hud.zoneMs[z] / ZONE_TARGET_MS);
+            const p = Math.min(1, hud.zoneMs[z] / TARGET);
             return (
               <div key={z} className={`zone ${p >= 1 ? "clean" : ""} ${hud.zone === z ? "on" : ""}`}>
                 {p >= 1
@@ -136,16 +147,16 @@ export default function Play({ theme, onDone, onQuit }: { theme: ThemeId; onDone
   );
 }
 
-function coachLine(f: Frame | null, zoneMs: Record<Zone, number>, theme: ThemeId) {
+function coachLine(f: Frame | null, zoneMs: Record<Zone, number>, TARGET: number, theme: ThemeId, demo: boolean) {
   const loud = theme === "arcade";
   const say = (s: string) => (loud ? s.toUpperCase() : s);
-  if (!f?.face) return say("Show me your smile!");
-  if (!f.handNearMouth) return say("Grab your toothbrush!");
+  if (!f?.face) return say(demo ? "Mark the teeth model" : "Show me your smile!");
+  if (!f.handNearMouth) return say(demo ? "Bring the brush to the model!" : "Grab your toothbrush!");
   if (!f.grip) return say("Hold your brush like a superhero!");
   if (!f.brushSeen) return say("Let the camera see your brush!");
   if (!f.brushing) return say("Little circles!");
-  const next = ZONES.find(z => zoneMs[z] < ZONE_TARGET_MS);
-  if (f.zone && zoneMs[f.zone] >= ZONE_TARGET_MS && next) return say(`Sparkly! Now the ${ZONE_LABEL[next].toLowerCase()}`);
+  const next = ZONES.find(z => zoneMs[z] < TARGET);
+  if (f.zone && zoneMs[f.zone] >= TARGET && next) return say(`Sparkly! Now the ${ZONE_LABEL[next].toLowerCase()}`);
   return say(theme === "hero" ? "Zap 'em!" : theme === "candy" ? "So shiny!" : `Attack ${ZONE_LABEL[f.zone!].toLowerCase()}!`);
 }
 
@@ -177,10 +188,16 @@ function strokeCurve(ctx: CanvasRenderingContext2D, pts: Pt[]) {
   ctx.stroke();
 }
 
-function drawOverlay(c: HTMLCanvasElement, v: HTMLVideoElement, f: Frame | null, zoneMs: Record<Zone, number>, color: string, now: number) {
+function drawOverlay(c: HTMLCanvasElement, v: HTMLVideoElement, f: Frame | null, zoneMs: Record<Zone, number>, ZONE_TARGET_MS: number, color: string, now: number, model: Box | null) {
   if (c.width !== v.videoWidth) { c.width = v.videoWidth; c.height = v.videoHeight; }
   const ctx = c.getContext("2d")!;
   ctx.clearRect(0, 0, c.width, c.height);
+  if (model) {
+    ctx.save();
+    ctx.strokeStyle = "rgba(255,255,255,.55)"; ctx.lineWidth = 2; ctx.setLineDash([6, 6]);
+    ctx.strokeRect(model.x0 * c.width, model.y0 * c.height, (model.x1 - model.x0) * c.width, (model.y1 - model.y0) * c.height);
+    ctx.restore();
+  }
   if (!f?.mouth || !f.lips) { if (f) drawTracking(ctx, c, f, color); return; }
   const thick = f.mouth.w * c.width * 0.14;
   const target = ZONES.find(z => zoneMs[z] < ZONE_TARGET_MS) ?? null;
@@ -285,4 +302,44 @@ function drawTracking(ctx: CanvasRenderingContext2D, c: HTMLCanvasElement, f: Fr
     ctx.stroke();
   }
   ctx.restore();
+}
+
+/* ---------- demo mode: mark the teeth model ---------- */
+const MODEL_KEY = "ezbrush.demoModel";
+function loadModelBox(): Box | null {
+  try { const b = JSON.parse(localStorage.getItem(MODEL_KEY) ?? "null"); return b && typeof b.x0 === "number" ? b : null; } catch { return null; }
+}
+function saveModelBox(b: Box) { try { localStorage.setItem(MODEL_KEY, JSON.stringify(b)); } catch {} }
+
+// The video is mirrored and object-fit: cover, so map a screen point back to raw camera coords.
+function screenToRaw(v: HTMLVideoElement, sx: number, sy: number): Pt {
+  const r = v.getBoundingClientRect();
+  const vw = v.videoWidth || 640, vh = v.videoHeight || 480;
+  const k = Math.max(r.width / vw, r.height / vh);
+  const dw = vw * k, dh = vh * k;
+  const ex = r.width - (sx - r.left); // undo the mirror
+  return { x: (ex - (r.width - dw) / 2) / dw, y: (sy - r.top - (r.height - dh) / 2) / dh };
+}
+
+function ModelMarker({ video, onDone }: { video: React.RefObject<HTMLVideoElement | null>; onDone: (b: Box) => void }) {
+  const [drag, setDrag] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null);
+  const finish = () => {
+    if (!drag || !video.current) return setDrag(null);
+    if (Math.abs(drag.x1 - drag.x0) < 40 || Math.abs(drag.y1 - drag.y0) < 30) return setDrag(null);
+    const a = screenToRaw(video.current, drag.x0, drag.y0), b = screenToRaw(video.current, drag.x1, drag.y1);
+    const clamp = (n: number) => Math.min(1, Math.max(0, n));
+    onDone({ x0: clamp(Math.min(a.x, b.x)), y0: clamp(Math.min(a.y, b.y)), x1: clamp(Math.max(a.x, b.x)), y1: clamp(Math.max(a.y, b.y)) });
+    setDrag(null);
+  };
+  return (
+    <div
+      className="marker"
+      onPointerDown={e => { (e.target as HTMLElement).setPointerCapture(e.pointerId); setDrag({ x0: e.clientX, y0: e.clientY, x1: e.clientX, y1: e.clientY }); }}
+      onPointerMove={e => drag && setDrag({ ...drag, x1: e.clientX, y1: e.clientY })}
+      onPointerUp={finish}
+    >
+      {!drag && <div className="marker-hint"><b>Demo mode</b>Point the camera at the teeth model, then drag a box around its teeth.</div>}
+      {drag && <div className="marker-box" style={{ left: Math.min(drag.x0, drag.x1), top: Math.min(drag.y0, drag.y1), width: Math.abs(drag.x1 - drag.x0), height: Math.abs(drag.y1 - drag.y0) }} />}
+    </div>
+  );
 }

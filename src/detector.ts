@@ -14,6 +14,7 @@ export type Zone = "UL" | "UF" | "UR" | "LL" | "LF" | "LR";
 export const ZONES: Zone[] = ["UL", "UF", "UR", "LL", "LF", "LR"];
 
 export interface Pt { x: number; y: number }
+export interface Box { x0: number; y0: number; x1: number; y1: number }
 export interface Frame {
   face: boolean;
   handNearMouth: boolean;
@@ -81,31 +82,42 @@ export class BrushDetector {
     ]);
   }
 
-  detect(video: HTMLVideoElement, now: number): Frame {
+  detect(video: HTMLVideoElement, now: number, demo?: Box | null): Frame {
     const out: Frame = { face: false, handNearMouth: false, grip: false, brushSeen: false, brushing: false, zone: null };
-    const raw = this.face.detectForVideo(video, now).faceLandmarks?.[0];
-    let lm: Pt[];
-    if (raw) {
-      this.lostFace = 0;
-      // smooth only the points we use (lip ring + corners/centre)
-      const ids = [...new Set([...UPPER_LIP, ...LOWER_LIP, LIP_TOP, LIP_BOTTOM])];
-      const sm = this.lipSmooth.apply(ids.map(i => raw[i]), now);
-      lm = [];
-      ids.forEach((id, k) => { lm[id] = sm[k]; });
-      this.lastFace = { lm };
-    } else if (this.lastFace && ++this.lostFace <= 5) {
-      lm = this.lastFace.lm; // keep the overlay steady through a few dropped frames
+    let mx: number, my: number, mw: number;
+    if (demo) {
+      // Demo mode: a teeth model marked by the user stands in for the face.
+      const W = demo.x1 - demo.x0, H = demo.y1 - demo.y0;
+      mx = (demo.x0 + demo.x1) / 2; my = (demo.y0 + demo.y1) / 2;
+      mw = W * 0.66; // so the left/front/right split (±0.25·mw) lands on the model's thirds
+      out.face = true;
+      out.mouth = { x: mx, y: my, w: mw };
+      out.lips = demoArches(demo, W, H);
     } else {
-      this.lipSmooth.reset(); this.lastFace = null; this.trail = []; return out;
-    }
-    out.face = true;
+      const raw = this.face.detectForVideo(video, now).faceLandmarks?.[0];
+      let lm: Pt[];
+      if (raw) {
+        this.lostFace = 0;
+        // smooth only the points we use (lip ring + corners/centre)
+        const ids = [...new Set([...UPPER_LIP, ...LOWER_LIP, LIP_TOP, LIP_BOTTOM])];
+        const sm = this.lipSmooth.apply(ids.map(i => raw[i]), now);
+        lm = [];
+        ids.forEach((id, k) => { lm[id] = sm[k]; });
+        this.lastFace = { lm };
+      } else if (this.lastFace && ++this.lostFace <= 5) {
+        lm = this.lastFace.lm; // keep the overlay steady through a few dropped frames
+      } else {
+        this.lipSmooth.reset(); this.lastFace = null; this.trail = []; return out;
+      }
+      out.face = true;
 
-    const ml = lm[MOUTH_R], mr = lm[MOUTH_L];
-    const mx = (ml.x + mr.x) / 2;
-    const my = (lm[LIP_TOP].y + lm[LIP_BOTTOM].y) / 2;
-    const mw = Math.hypot(mr.x - ml.x, mr.y - ml.y);
-    out.mouth = { x: mx, y: my, w: mw };
-    out.lips = { upper: UPPER_LIP.map(i => pt(lm[i])), lower: LOWER_LIP.map(i => pt(lm[i])) };
+      const ml = lm[MOUTH_R], mr = lm[MOUTH_L];
+      mx = (ml.x + mr.x) / 2;
+      my = (lm[LIP_TOP].y + lm[LIP_BOTTOM].y) / 2;
+      mw = Math.hypot(mr.x - ml.x, mr.y - ml.y);
+      out.mouth = { x: mx, y: my, w: mw };
+      out.lips = { upper: UPPER_LIP.map(i => pt(lm[i])), lower: LOWER_LIP.map(i => pt(lm[i])) };
+    }
 
     // --- toothbrush near the mouth (sampled, remembered briefly) ---
     if (this.frameNo++ % OBJECT_EVERY_N === 0) {
@@ -206,4 +218,15 @@ function mode<T>(arr: T[]): T {
   let best = arr[0], n = 0;
   for (const a of arr) { const k = (c.get(a) ?? 0) + 1; c.set(a, k); if (k > n) { n = k; best = a; } }
   return best;
+}
+
+// Two arches inside the marked model box (11 points each, model's right corner -> left corner,
+// in raw camera coords where raw-left is the model's right, same as a face).
+function demoArches(b: Box, W: number, H: number): { upper: Pt[]; lower: Pt[] } {
+  const cx = (b.x0 + b.x1) / 2, cy = (b.y0 + b.y1) / 2;
+  const arc = (dir: number) => Array.from({ length: 11 }, (_, i) => {
+    const t = (i / 10) * Math.PI;
+    return { x: cx - Math.cos(t) * W * 0.42, y: cy + dir * (H * 0.06 + Math.sin(t) * H * 0.22) };
+  });
+  return { upper: arc(-1), lower: arc(1) };
 }
