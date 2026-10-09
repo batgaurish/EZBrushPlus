@@ -54,7 +54,9 @@ export class BrushDetector {
   private zoneVotes: Zone[] = [];
   private frameNo = 0;
   private lipSmooth = new PointSmoother(1.0, 0.01);
-  private handSmooth = [new PointSmoother(1.5, 0.03), new PointSmoother(1.5, 0.03)];
+  // Keyed by handedness: MediaPipe's hand order can swap between frames, and a smoother fed
+  // the other hand's points would make the drawn skeleton jump.
+  private handSmooth = new Map<string, PointSmoother>();
   private lostFace = 0;
   private lastFace: { lm: Pt[] } | null = null;
   private liveBrush: { box: Box; t: number } | null = null;
@@ -128,9 +130,18 @@ export class BrushDetector {
     out.mouth = { x: mx, y: my, w: mw };
 
     // ---------- hands: raw for measuring, smoothed for drawing ----------
-    const hands = (this.hands.detectForVideo(video, now).landmarks ?? []).slice(0, 2);
-    if (hands.length === 0) this.handSmooth.forEach(h => h.reset());
-    out.handPoints = hands.map((h, i) => this.handSmooth[i].apply(h, now));
+    const res = this.hands.detectForVideo(video, now);
+    const hands = (res.landmarks ?? []).slice(0, 2);
+    const seen = new Set<string>();
+    out.handPoints = hands.map((h, i) => {
+      let key = res.handedness?.[i]?.[0]?.categoryName ?? `hand${i}`;
+      if (seen.has(key)) key = `${key}${i}`; // two hands labelled the same: keep them apart
+      seen.add(key);
+      let sm = this.handSmooth.get(key);
+      if (!sm) { sm = new PointSmoother(1.5, 0.03); this.handSmooth.set(key, sm); }
+      return sm.apply(h, now);
+    });
+    for (const k of [...this.handSmooth.keys()]) if (!seen.has(k)) this.handSmooth.delete(k); // lost hands start fresh
     let best: { h: Pt[]; x: number; y: number; d: number } | null = null;
     for (const h of hands) {
       const x = (h[5].x + h[9].x + h[0].x) / 3, y = (h[5].y + h[9].y + h[0].y) / 3; // knuckles + wrist

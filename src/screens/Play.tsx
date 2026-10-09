@@ -26,7 +26,7 @@ export default function Play({ theme, profile, demo = false, onDone, onQuit }: {
   const video = useRef<HTMLVideoElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const [status, setStatus] = useState("Starting camera…");
-  const [hud, setHud] = useState({ left: TOTAL, zoneMs: blank(), zone: null as Zone | null, combo: 0, frame: null as Frame | null });
+  const [hud, setHud] = useState({ left: TOTAL, zoneMs: blank(), zone: null as Zone | null, combo: 0, frame: null as Coach | null });
   const [pop, setPop] = useState<{ zone: Zone; key: number } | null>(null);
   const done = useRef(onDone); done.current = onDone;
   const themeRef = useRef(theme); themeRef.current = theme;
@@ -41,16 +41,22 @@ export default function Play({ theme, profile, demo = false, onDone, onQuit }: {
         if (!alive) return;
         video.current!.srcObject = stream;
         await video.current!.play();
-        if (!detector) {
-          setStatus("Warming up the germ radar…");
-          const d = new BrushDetector();
-          await d.init();
-          detector = d;
-        }
       } catch (e) {
         console.error(e);
         setStatus("Camera blocked. Allow camera access and try again.");
         return;
+      }
+      if (!detector) {
+        try {
+          setStatus("Warming up the germ radar…");
+          const d = new BrushDetector();
+          await d.init();
+          detector = d;
+        } catch (e) {
+          console.error(e);
+          setStatus("Couldn't load the tracking models. Check your internet and try again.");
+          return;
+        }
       }
       if (!alive) return;
       setStatus("");
@@ -84,7 +90,7 @@ export default function Play({ theme, profile, demo = false, onDone, onQuit }: {
         drawOverlay(canvas.current!, v, f, zoneMs, TARGET, AR_COLOR[themeRef.current], now, demo ? modelRef.current : null);
         if (now - lastHud > 100) {
           lastHud = now;
-          setHud({ left: Math.max(0, TOTAL - elapsed), zoneMs: { ...zoneMs }, zone: f?.zone ?? null, combo, frame: f });
+          setHud({ left: Math.max(0, TOTAL - elapsed), zoneMs: { ...zoneMs }, zone: f?.zone ?? null, combo, frame: f && coachState(f) });
         }
         if (elapsed >= TOTAL) { done.current({ zoneMs, bestComboMs: best, targetMs: TARGET, demo }); return; }
         raf = requestAnimationFrame(tick);
@@ -151,7 +157,11 @@ export default function Play({ theme, profile, demo = false, onDone, onQuit }: {
   );
 }
 
-function coachLine(f: Frame | null, zoneMs: Record<Zone, number>, TARGET: number, theme: ThemeId, demo: boolean) {
+// Just the flags the coach text needs; the landmark arrays stay in the render loop.
+type Coach = Pick<Frame, "face" | "handNearMouth" | "grip" | "brushSeen" | "brushing" | "zone">;
+const coachState = ({ face, handNearMouth, grip, brushSeen, brushing, zone }: Frame): Coach => ({ face, handNearMouth, grip, brushSeen, brushing, zone });
+
+function coachLine(f: Coach | null, zoneMs: Record<Zone, number>, TARGET: number, theme: ThemeId, demo: boolean) {
   const loud = theme === "arcade";
   const say = (s: string) => (loud ? s.toUpperCase() : s);
   if (!f?.face) return say(demo ? "Mark the teeth model" : "Show me your smile!");

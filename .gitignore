@@ -4,3 +4,6 @@ dist
 android/local.properties
 *.log
 *.apk
+.desloppify/
+scorecard.png
+HANDOVER-*.md
